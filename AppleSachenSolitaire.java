@@ -109,17 +109,7 @@ public class AppleSachenSolitaire extends JFrame {
     private void endDrag() {
         if(isDragging) {
             // 모든 연결이 유효하고 합이 10일 때만 사과 제거
-            boolean isValid = true;
-            for (int i = 0; i < selectedPoints.size() - 1; i++) {
-                Point current = selectedPoints.get(i);
-                Point next = selectedPoints.get(i + 1);
-                if (countTurns(current, next) > 2) {
-                    isValid = false;
-                    break;
-                }
-            }
-            
-            if(isValid && isSumTen()) {
+            if(isValidPath() && isSumTen()) {
                 removeSelectedApples();
                 updateScore();
             }
@@ -129,16 +119,14 @@ public class AppleSachenSolitaire extends JFrame {
         repaint();
     }
     
+    
     private Point convertToGridPoint(Point p) {
         // 전체 게임판 기준으로 좌표 변환
-        int x = (p.y - MARGIN) / CELL_SIZE;
-        int y = (p.x - MARGIN) / CELL_SIZE;
+        int x = (p.y - MARGIN) / CELL_SIZE; // y 좌표를 기준으로 행 계산
+        int y = (p.x - MARGIN) / CELL_SIZE; // x 좌표를 기준으로 열 계산
         
         // 전체 게임판 영역 내의 좌표로 제한
         if (x >= 0 && x < BOARD_ROWS && y >= 0 && y < BOARD_COLS) {
-            // 실제 사과 배열의 인덱스로 변환
-            int appleX = x - APPLE_START_ROW;
-            int appleY = y - APPLE_START_COL;
             return new Point(x, y);  // 게임판 좌표 반환
         }
         return new Point(-1, -1);
@@ -162,19 +150,18 @@ public class AppleSachenSolitaire extends JFrame {
     
     private boolean isValidPath() {
         if (selectedPoints.size() < 2) return true;
-        
-        // 인접한 두 사과 사이의 연결만 체크
+
+        // 전체 드래그에서 꺾인 점의 갯수 체크
+        int turns = 0;
         for (int i = 0; i < selectedPoints.size() - 1; i++) {
             Point current = selectedPoints.get(i);
             Point next = selectedPoints.get(i + 1);
             
             // 두 점 사이의 꺾임 횟수 계산
-            int turns = countTurns(current, next);
-            if (turns > 2) {  // 3번 이상 꺾이면 false
-                return false;
-            }
+            turns += countTurns(current, next);
         }
-        return true;
+
+        return turns < 3; // 꺾인 점이 3번 이상이면 false
     }
     
     private int countTurns(Point start, Point end) {
@@ -184,7 +171,6 @@ public class AppleSachenSolitaire extends JFrame {
         // 현재 위치
         int x = start.x;
         int y = start.y;
-        Point prev = start;
         
         // 목표 위치까지 이동하면서 꺾임 횟수 계산
         while (x != end.x || y != end.y) {
