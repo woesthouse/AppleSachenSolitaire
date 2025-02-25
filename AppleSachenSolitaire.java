@@ -107,11 +107,14 @@ public class AppleSachenSolitaire extends JFrame {
     }
     
     private void endDrag() {
-        if(isDragging) {
+        if (isDragging) {
             // 모든 연결이 유효하고 합이 10일 때만 사과 제거
-            if(isValidPath() && isSumTen()) {
-                removeSelectedApples();
-                updateScore();
+            if (isValidPath() && isSumTen()) {
+                int removedCount = removeSelectedApples(); // 제거된 사과 개수 반환
+                updateScore(removedCount); // 제거된 사과 개수에 따라 점수 업데이트
+            } else {
+                // 드래그가 유효하지 않은 경우 점수 업데이트를 하지 않음
+                System.out.println("Invalid path or sum not equal to 10. No score update.");
             }
         }
         isDragging = false;
@@ -205,18 +208,25 @@ public class AppleSachenSolitaire extends JFrame {
         return turns;
     }
     
-    private void removeSelectedApples() {
-        for(Point p : selectedPoints) {
+    private int removeSelectedApples() {
+        int removedCount = 0; // 제거된 사과의 개수
+
+        for (Point p : selectedPoints) {
             if (isApplePosition(p)) {
                 int appleX = p.x - APPLE_START_ROW;
                 int appleY = p.y - APPLE_START_COL;
-                board[appleX][appleY] = 0;
+                if (board[appleX][appleY] > 0) { // 사과가 존재하는 경우에만 제거
+                    board[appleX][appleY] = 0; // 사과 제거
+                    removedCount++; // 제거된 사과 개수 증가
+                }
             }
         }
+
+        return removedCount; // 제거된 사과 개수 반환
     }
     
-    private void updateScore() {
-        score += selectedPoints.size();
+    private void updateScore(int removedCount) {
+        score += removedCount; // 제거된 사과 개수만큼 점수 증가
     }
     
     private void endGame() {
@@ -245,7 +255,7 @@ public class AppleSachenSolitaire extends JFrame {
     }
     
     private Color getPathColor() {
-        // 인접한 두 사과 사이에 3번 이상 꺾인 경우가 있으면 검은색
+        //사과 사이에 3번 이상 꺾인 경우가 있으면 검은색
         for (int i = 0; i < selectedPoints.size() - 1; i++) {
             Point current = selectedPoints.get(i);
             Point next = selectedPoints.get(i + 1);
@@ -325,25 +335,25 @@ public class AppleSachenSolitaire extends JFrame {
         }
         
         private void drawDragPath(Graphics2D g) {
-            if(selectedPoints.size() < 2) return;
-            
+            if (selectedPoints.size() < 2) return;
+
             g.setColor(getPathColor());  // 색상 처리 통합
-            
-            for(int i = 0; i < selectedPoints.size()-1; i++) {
+
+            for (int i = 0; i < selectedPoints.size() - 1; i++) {
                 Point p1 = selectedPoints.get(i);
-                Point p2 = selectedPoints.get(i+1);
-                g.drawLine(p1.y * CELL_SIZE + CELL_SIZE/2 + MARGIN, 
-                          p1.x * CELL_SIZE + CELL_SIZE/2 + MARGIN,
-                          p2.y * CELL_SIZE + CELL_SIZE/2 + MARGIN, 
-                          p2.x * CELL_SIZE + CELL_SIZE/2 + MARGIN);
+                Point p2 = selectedPoints.get(i + 1);
+                g.drawLine(p1.y * CELL_SIZE + CELL_SIZE / 2 + MARGIN, 
+                           p1.x * CELL_SIZE + CELL_SIZE / 2 + MARGIN,
+                           p2.y * CELL_SIZE + CELL_SIZE / 2 + MARGIN, 
+                           p2.x * CELL_SIZE + CELL_SIZE / 2 + MARGIN);
             }
-            
-            if(currentPoint != null && !selectedPoints.isEmpty()) {
-                Point last = selectedPoints.get(selectedPoints.size()-1);
-                g.drawLine(last.y * CELL_SIZE + CELL_SIZE/2 + MARGIN, 
-                          last.x * CELL_SIZE + CELL_SIZE/2 + MARGIN,
-                          currentPoint.y * CELL_SIZE + CELL_SIZE/2 + MARGIN, 
-                          currentPoint.x * CELL_SIZE + CELL_SIZE/2 + MARGIN);
+
+            if (currentPoint != null && !selectedPoints.isEmpty()) {
+                Point last = selectedPoints.get(selectedPoints.size() - 1);
+                g.drawLine(last.y * CELL_SIZE + CELL_SIZE / 2 + MARGIN, 
+                           last.x * CELL_SIZE + CELL_SIZE / 2 + MARGIN,
+                           currentPoint.y * CELL_SIZE + CELL_SIZE / 2 + MARGIN, 
+                           currentPoint.x * CELL_SIZE + CELL_SIZE / 2 + MARGIN);
             }
         }
         
