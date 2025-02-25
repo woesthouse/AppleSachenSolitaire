@@ -210,14 +210,18 @@ public class AppleSachenSolitaire extends JFrame {
     
     private int removeSelectedApples() {
         int removedCount = 0; // 제거된 사과의 개수
-        for(Point p : selectedPoints) {
+
+        for (Point p : selectedPoints) {
             if (isApplePosition(p)) {
                 int appleX = p.x - APPLE_START_ROW;
                 int appleY = p.y - APPLE_START_COL;
-                board[appleX][appleY] = 0; // 사과 제거
-                removedCount++; // 제거된 사과 개수 증가
+                if (board[appleX][appleY] > 0) { // 사과가 존재하는 경우에만 제거
+                    board[appleX][appleY] = 0; // 사과 제거
+                    removedCount++; // 제거된 사과 개수 증가
+                }
             }
         }
+
         return removedCount; // 제거된 사과 개수 반환
     }
     
