@@ -18,7 +18,7 @@ public class AppleSachenSolitaire extends JFrame {
     
     private int[][] board;
     private int score;
-    private int timeLeft;
+    private int timeLeft;  
     private boolean isDragging;
     private Point startPoint;
     private Point currentPoint;
@@ -153,7 +153,7 @@ public class AppleSachenSolitaire extends JFrame {
     
     private boolean isValidPath() {
         if (selectedPoints.size() < 2) return true;
-
+    
         // 전체 드래그에서 꺾인 점의 갯수 체크
         int turns = 0;
         for (int i = 0; i < selectedPoints.size() - 1; i++) {
@@ -161,9 +161,9 @@ public class AppleSachenSolitaire extends JFrame {
             Point next = selectedPoints.get(i + 1);
             
             // 두 점 사이의 꺾임 횟수 계산
-            turns += countTurns(current, next);
+            turns += countTurns(current, next); // countTurns 호출
         }
-
+    
         return turns < 3; // 꺾인 점이 3번 이상이면 false
     }
     
@@ -183,7 +183,8 @@ public class AppleSachenSolitaire extends JFrame {
             
             if (x != end.x) {
                 nextX += Integer.compare(end.x, x);
-            } else if (y != end.y) {
+            }
+            if (y != end.y) {
                 nextY += Integer.compare(end.y, y);
             }
             
@@ -193,18 +194,23 @@ public class AppleSachenSolitaire extends JFrame {
                 Integer.compare(nextY, y)
             );
             
-            // 이전 방향이 있고, 방향이 바뀌었다면 꺾인 것
-            if (prevDirection != null && 
-                (currentDirection.x != prevDirection.x || 
-                 currentDirection.y != prevDirection.y)) {
-                turns++;
+            // 첫 번째 이동일 경우 prevDirection을 초기화
+            if (prevDirection == null) {
+                prevDirection = currentDirection;
             }
             
+            if (currentDirection.x != prevDirection.x || currentDirection.y != prevDirection.y) {
+                turns++;
+                System.out.println("Turn detected! Total turns so far: " + turns);
+            }
+            
+            // 이전 방향 업데이트
             prevDirection = currentDirection;
             x = nextX;
             y = nextY;
         }
         
+        System.out.println("Total turns from " + start + " to " + end + ": " + turns);
         return turns;
     }
     
