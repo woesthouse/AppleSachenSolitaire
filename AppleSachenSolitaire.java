@@ -112,9 +112,6 @@ public class AppleSachenSolitaire extends JFrame {
             if (isValidPath() && isSumTen()) {
                 int removedCount = removeSelectedApples(); // 제거된 사과 개수 반환
                 updateScore(removedCount); // 제거된 사과 개수에 따라 점수 업데이트
-            } else {
-                // 드래그가 유효하지 않은 경우 점수 업데이트를 하지 않음
-                System.out.println("Invalid path or sum not equal to 10. No score update.");
             }
         }
         isDragging = false;
@@ -155,63 +152,63 @@ public class AppleSachenSolitaire extends JFrame {
         if (selectedPoints.size() < 2) return true;
     
         // 전체 드래그에서 꺾인 점의 갯수 체크
-        int turns = 0;
+        int turns = 0; // 여기서 초기화
+        Point[] prevDirection = new Point[1]; // 배열로 선언하여 참조 전달
+
         for (int i = 0; i < selectedPoints.size() - 1; i++) {
             Point current = selectedPoints.get(i);
             Point next = selectedPoints.get(i + 1);
             
             // 두 점 사이의 꺾임 횟수 계산
-            turns += countTurns(current, next); // countTurns 호출
+            turns += countTurns(current, next, prevDirection); // countTurns 호출
         }
     
         return turns < 3; // 꺾인 점이 3번 이상이면 false
     }
     
-    private int countTurns(Point start, Point end) {
+    private int countTurns(Point start, Point end, Point[] prevDirection) {
         int turns = 0;
-        Point prevDirection = null;
-        
+
         // 현재 위치
         int x = start.x;
         int y = start.y;
-        
+
         // 목표 위치까지 이동하면서 꺾임 횟수 계산
         while (x != end.x || y != end.y) {
             // 다음 위치 결정
             int nextX = x;
             int nextY = y;
-            
+
             if (x != end.x) {
                 nextX += Integer.compare(end.x, x);
             }
             if (y != end.y) {
                 nextY += Integer.compare(end.y, y);
             }
-            
+
             // 현재 방향 계산
             Point currentDirection = new Point(
                 Integer.compare(nextX, x),
                 Integer.compare(nextY, y)
             );
-            
+
             // 첫 번째 이동일 경우 prevDirection을 초기화
-            if (prevDirection == null) {
-                prevDirection = currentDirection;
+            if (prevDirection[0] == null) {
+                prevDirection[0] = currentDirection;
+            } else {
+                // 이전 방향과 현재 방향 비교
+                if (currentDirection.x != prevDirection[0].x || currentDirection.y != prevDirection[0].y) {
+                    turns++;
+                }
             }
-            
-            if (currentDirection.x != prevDirection.x || currentDirection.y != prevDirection.y) {
-                turns++;
-                System.out.println("Turn detected! Total turns so far: " + turns);
-            }
-            
+
             // 이전 방향 업데이트
-            prevDirection = currentDirection;
+            prevDirection[0] = currentDirection; // 항상 업데이트
             x = nextX;
             y = nextY;
         }
-        
-        System.out.println("Total turns from " + start + " to " + end + ": " + turns);
-        return turns;
+
+        return turns; // 꺾인 횟수 반환
     }
     
     private int removeSelectedApples() {
@@ -261,16 +258,20 @@ public class AppleSachenSolitaire extends JFrame {
     }
     
     private Color getPathColor() {
-        //사과 사이에 3번 이상 꺾인 경우가 있으면 검은색
+        // 사과 사이에 3번 이상 꺾인 경우가 있으면 검은색
+        int turns = 0;
+        Point[] prevDirection = new Point[1]; // 배열로 선언하여 참조 전달
+
         for (int i = 0; i < selectedPoints.size() - 1; i++) {
             Point current = selectedPoints.get(i);
             Point next = selectedPoints.get(i + 1);
-            if (countTurns(current, next) > 2) {
-                return Color.BLACK;
-            }
+            
+            // 두 점 사이의 꺾임 횟수 계산
+            turns += countTurns(current, next, prevDirection); // countTurns 호출
         }
-        // 그렇지 않으면 합에 따라 색상 결정
-        return isSumTen() ? Color.ORANGE : Color.YELLOW;
+
+        // 꺾인 점이 3번 이상이면 검은색 반환
+        return turns >= 3 ? Color.BLACK : (isSumTen() ? Color.ORANGE : Color.YELLOW);
     }
     
     private class GamePanel extends JPanel {
